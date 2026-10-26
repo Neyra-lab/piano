@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Keys: play the piano in your browser</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;600&family=Young+Serif&display=swap">
+<style>
+:root{
+  --bg:#e6edee;--panel:#fff;--text:#14272d;--muted:#4d6368;--accent:#9a5b00;--on-accent:#fff;--line:#c4d2d4;
+  box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px);
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#10272f;--panel:#183943;--text:#eef2ee;--muted:#a2b8bc;--accent:#f0b24a;--on-accent:#1a1203;--line:#2b515c}}
+:root[data-theme="dark"]{--bg:#10272f;--panel:#183943;--text:#eef2ee;--muted:#a2b8bc;--accent:#f0b24a;--on-accent:#1a1203;--line:#2b515c}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--text);font:400 1rem/1.6 Figtree,system-ui,sans-serif}
+main{max-width:1000px;margin:0 auto;padding:0 20px}
+h1,h2{font-family:"Young Serif",Georgia,serif;font-weight:400;line-height:1.1;margin:0}
+h1{font-size:clamp(2.4rem,7vw,4.2rem);max-width:12ch;padding-top:56px}
+h2{font-size:1.7rem}
+.lead{color:var(--muted);max-width:52ch;margin:16px 0 32px}
+.case{background:#0b1a1f;border-radius:14px 14px 6px 6px;padding:16px 14px 14px;box-shadow:0 18px 40px rgba(0,0,0,.28)}
+.scroll{overflow-x:auto;padding-bottom:2px;-webkit-overflow-scrolling:touch}
+.piano{position:relative;display:flex;height:230px;min-width:720px;user-select:none;-webkit-user-select:none}
+.w{flex:1;position:relative;background:linear-gradient(#fbf8ef,#e6dfcc);border:1px solid #8c866f;border-top:0;border-radius:0 0 6px 6px;margin:0 1px;cursor:pointer;display:flex;flex-direction:column;justify-content:flex-end;align-items:center;padding-bottom:10px;color:#4a4638;font-size:.78rem;touch-action:manipulation}
+.b{position:absolute;top:0;height:60%;background:linear-gradient(#2b3236,#0d1012);border-radius:0 0 5px 5px;z-index:2;cursor:pointer;display:flex;align-items:flex-end;justify-content:center;padding-bottom:8px;color:#9fb0b5;font-size:.7rem;touch-action:manipulation}
+.w.on{background:linear-gradient(#f7dca3,#e9bd69);transform:translateY(2px)}
+.b.on{background:linear-gradient(#46555b,#1c2326);transform:translateY(2px)}
+.k small{display:block;line-height:1.3;text-align:center}
+.hide-names .nm{display:none}
+.k.next{outline:3px solid var(--accent);outline-offset:-3px;animation:pulse 1s ease-in-out infinite alternate}
+.w.next{background:linear-gradient(#ffe7b3,#f2c46f)}
+.b.next{background:linear-gradient(#b9812a,#6e4a12);color:#fff}
+@keyframes pulse{from{opacity:.75}to{opacity:1}}
+.bar{display:flex;flex-wrap:wrap;gap:12px 20px;align-items:center;margin-top:20px}
+.seg{display:flex;background:var(--panel);border:1px solid var(--line);border-radius:999px;padding:3px}
+button,select{font:inherit;color:inherit}
+.seg button{border:0;background:none;padding:6px 16px;border-radius:999px;cursor:pointer}
+.seg button[aria-pressed="true"]{background:var(--accent);color:var(--on-accent)}
+.btn{background:var(--panel);border:1px solid var(--line);padding:8px 18px;border-radius:999px;cursor:pointer}
+.btn.primary{background:var(--accent);color:var(--on-accent);border-color:var(--accent)}
+.btn.rec{border-color:#d9534f}
+.btn.rec.live{background:#d9534f;color:#fff}
+.btn:disabled{opacity:.45;cursor:not-allowed}
+label{display:flex;gap:8px;align-items:center;cursor:pointer}
+:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
+section{padding:64px 0 24px}
+.learn{display:flex;flex-wrap:wrap;gap:12px;align-items:center;margin-top:20px}
+select{background:var(--panel);border:1px solid var(--line);padding:8px 14px;border-radius:999px}
+.status{margin:16px 0 0;min-height:1.6em;color:var(--muted)}
+.bars{height:6px;background:var(--line);border-radius:3px;margin-top:10px;overflow:hidden;max-width:420px}
+.bars i{display:block;height:100%;width:0;background:var(--accent);transition:width .2s}
+footer{padding:48px 0 40px;color:var(--muted);font-size:.9rem}
+@media (prefers-reduced-motion:reduce){.k.next{animation:none}.w.on,.b.on{transform:none}}
+</style>
+</head>
+<body>
+<main>
+  <h1>Play the piano in your browser.</h1>
+  <p class="lead">Tap the keys, press the letters on your keyboard, or learn a short melody one note at a time. Nothing to install.</p>
+
+  <div class="case">
+    <div class="scroll"><div class="piano" id="piano" role="group" aria-label="Piano keyboard"></div></div>
+  </div>
+
+  <div class="bar">
+    <div class="seg" id="tones" role="group" aria-label="Sound">
+      <button data-tone="piano" aria-pressed="true">Piano</button>
+      <button data-tone="organ" aria-pressed="false">Organ</button>
+      <button data-tone="glass" aria-pressed="false">Glass</button>
+      <button data-tone="synth" aria-pressed="false">Synth</button>
+    </div>
+    <label><input type="checkbox" id="names" checked> Show note names</label>
+    <button class="btn rec" id="rec">Record</button>
+    <button class="btn" id="play" disabled>Play back</button>
+  </div>
+
+  <section>
+    <h2>Learn a melody</h2>
+    <p class="lead" style="margin-bottom:0">Pick a song and press Start. The next key lights up. Play it to move on.</p>
+    <div class="learn">
+      <select id="song" aria-label="Song"></select>
+      <button class="btn primary" id="start">Start</button>
+      <button class="btn" id="stop" hidden>Stop</button>
+    </div>
+    <p class="status" id="status" aria-live="polite"></p>
+    <div class="bars"><i id="bar"></i></div>
+  </section>
+
+  <footer>Built with HTML, CSS and JavaScript. Sound is generated live with the Web Audio API.</footer>
+</main>
+<script src="script.js"></script>
+</body>
+</html>
